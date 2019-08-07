@@ -54,7 +54,18 @@ export const constantRoutes = [
       meta: { title: 'Dashboard', icon: 'dashboard' }
     }]
   },
-
+  {
+    path: '/host',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        hostName: 'Host',
+        component: () => import('@/views/host/index'),
+        meta: { title: '主机管理', icon: 'form' }
+      }
+    ]
+  },
   {
     path: '/example',
     component: Layout,
