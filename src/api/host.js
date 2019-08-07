@@ -7,6 +7,7 @@ export function getList(params) {
     params
   })
 }
+
 export function add(data) {
   return request({
     url: '/host',
@@ -14,6 +15,7 @@ export function add(data) {
     data
   })
 }
+
 export function edit(data) {
   return request({
     url: '/host/' + data.id,
@@ -21,9 +23,25 @@ export function edit(data) {
     data
   })
 }
+
 export function del(id) {
   return request({
     url: '/host/' + id,
     method: 'delete'
+  })
+}
+
+export function batchDel(ids) {
+  return request({
+    url: '/host/batch',
+    method: 'delete',
+    params: {
+      ids: ids
+    },
+    paramsSerializer: params => {
+      const yourNewParams = params.ids.map(_ => `ids=${_}`).join('&')
+      console.log(yourNewParams)
+      return yourNewParams
+    }
   })
 }

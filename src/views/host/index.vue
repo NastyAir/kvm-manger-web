@@ -9,6 +9,14 @@
         >添加
         </el-button>
       </el-form-item>
+      <el-form-item>
+        <el-button
+          size="mini"
+          type="danger"
+          @click="handleBatchDel()"
+        >删除
+        </el-button>
+      </el-form-item>
       <el-form-item label="主机名称">
         <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称" />
       </el-form-item>
@@ -23,13 +31,18 @@
       border
       fit
       highlight-current-row
+      @selection-change="handleSelectionChange"
     >
+      <el-table-column
+        type="selection"
+        width="55"
+      />
       <el-table-column align="center" label="ID" width="95">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column label="主机名称">
+      <el-table-column label="主机名称" width="110">
         <template slot-scope="scope">
           {{ scope.row.name }}
         </template>
@@ -37,6 +50,21 @@
       <el-table-column label="IP" width="110" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.ip }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="描述">
+        <template slot-scope="scope">
+          <span>{{ scope.row.description }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间">
+        <template slot-scope="scope">
+          <span>{{ scope.row.createDate }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="修改时间">
+        <template slot-scope="scope">
+          <span>{{ scope.row.updateDate }}</span>
         </template>
       </el-table-column>
       <el-table-column align="center" label="操作" width="200">
@@ -89,7 +117,7 @@
 </template>
 
 <script>
-import { getList, add, edit, del } from '@/api/host'
+import { getList, add, edit, del, batchDel } from '@/api/host'
 
 export default {
   name: 'Host',
@@ -99,6 +127,7 @@ export default {
       list: null,
       // 列表是否正在加载中
       listLoading: true,
+      multipleSelection: [],
       /**
        *  分页相关
        */
@@ -204,6 +233,23 @@ export default {
         this.listLoading = false
       })
     },
+    // 发送批量删除请求
+    sendBatchDelRequest(ids) {
+      batchDel(ids).then(response => {
+        if (response.success) {
+          this.$message({
+            message: '主机删除成功' + response.msg,
+            type: 'success'
+          })
+          this.fetchData()
+        } else {
+          this.$message.error('主机删除失败。' + response.msg)
+        }
+      }).catch(() => {
+        this.$message('无法完成当前请求')
+        this.listLoading = false
+      })
+    },
     // 查询按钮 点击事件
     onQueryBtn() {
       this.queryFrom.currentPage = 0
@@ -260,12 +306,45 @@ export default {
         password: ''
       }
     },
+    // 批量删除按钮点击事件
+    handleBatchDel() {
+      if (this.multipleSelection.length <= 0) {
+        this.$message.error('当前没有选中任何对象，无法进行删除。')
+        return
+      }
+      this.$confirm('此操作将永久删除选中主机, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      }).then(() => {
+        this.sendBatchDelRequest(this.getDelId(this.multipleSelection))
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+    getDelId(list) {
+      const idList = []
+      for (let i = 0; i < list; i++) {
+        const obj = list[i]
+        console.log(obj)
+        idList.push(obj.id)
+      }
+      return idList
+    },
+    // 新增/编辑 确认按钮事件
     handleDialogSubmit() {
       if (this.dialogTitle === '添加') {
         this.sendAddRequest()
       } else if (this.dialogTitle === '编辑') {
         this.sendEditRequest()
       }
+    },
+    // 多选
+    handleSelectionChange(val) {
+      this.multipleSelection = val
     }
   }
 }
