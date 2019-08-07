@@ -327,9 +327,8 @@ export default {
     },
     getDelId(list) {
       const idList = []
-      for (let i = 0; i < list; i++) {
+      for (let i = 0; i < list.length; i++) {
         const obj = list[i]
-        console.log(obj)
         idList.push(obj.id)
       }
       return idList
