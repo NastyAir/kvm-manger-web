@@ -14,7 +14,7 @@ import router from './router'
 
 import '@/icons' // icon
 import '@/permission' // permission control
-
+import x2js from 'x2js' // xml数据处理插件
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -32,6 +32,9 @@ import '@/permission' // permission control
 Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
+
+// 创建x2js对象，挂到vue原型上
+Vue.prototype.$x2js = new x2js()
 
 new Vue({
   el: '#app',

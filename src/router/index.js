@@ -51,21 +51,58 @@ export const constantRoutes = [
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
+      meta: { title: '首页', icon: 'dashboard' }
     }]
   },
+  {
+    path: '/guide',
+    component: Layout,
+    children: [
+      {
+        path: 'singeForm',
+        name: 'SingeForm',
+        component: () => import('@/views/guide/singeForm'),
+        meta: { title: '快速创建虚拟机', icon: 'form' }
+      }
+    ]
+  },
+  // {
+  //   path: '/guide',
+  //   component: Layout,
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       name: 'Guide',
+  //       component: () => import('@/views/guide/index'),
+  //       meta: {title: '快速创建虚拟机', icon: 'form'}
+  //     }
+  //   ]
+  // },
   {
     path: '/host',
     component: Layout,
     children: [
       {
         path: 'index',
-        hostName: 'Host',
+        name: 'Host',
         component: () => import('@/views/host/index'),
         meta: { title: '主机管理', icon: 'form' }
       }
     ]
   },
+  {
+    path: '/instance',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Instance',
+        component: () => import('@/views/instance/index'),
+        meta: { title: '实例管理', icon: 'form' }
+      }
+    ]
+  },
+  /*
   {
     path: '/example',
     component: Layout,
@@ -169,6 +206,7 @@ export const constantRoutes = [
       }
     ]
   },
+*/
 
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }

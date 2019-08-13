@@ -1,117 +1,119 @@
 <template>
   <div class="app-container">
-    <el-form :inline="true" :model="queryFrom" class="demo-form-inline">
-      <el-form-item>
-        <el-button
-          size="mini"
-          type="success"
-          @click="handleAdd()"
-        >添加
-        </el-button>
-      </el-form-item>
-      <el-form-item>
-        <el-button
-          size="mini"
-          type="danger"
-          @click="handleBatchDel()"
-        >删除
-        </el-button>
-      </el-form-item>
-      <el-form-item label="主机名称">
-        <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称" />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" size="mini" @click="onQueryBtn">查询</el-button>
-      </el-form-item>
-    </el-form>
-    <el-table
-      v-loading="listLoading"
-      :data="list"
-      element-loading-text="Loading"
-      border
-      fit
-      highlight-current-row
-      @selection-change="handleSelectionChange"
-    >
-      <el-table-column
-        type="selection"
-        width="55"
-      />
-      <el-table-column align="center" label="ID" width="95">
-        <template slot-scope="scope">
-          {{ scope.row.id }}
-        </template>
-      </el-table-column>
-      <el-table-column label="主机名称" width="110">
-        <template slot-scope="scope">
-          {{ scope.row.name }}
-        </template>
-      </el-table-column>
-      <el-table-column label="IP" width="110" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.ip }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="描述">
-        <template slot-scope="scope">
-          <span>{{ scope.row.description }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间">
-        <template slot-scope="scope">
-          <span>{{ scope.row.createDate }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="修改时间">
-        <template slot-scope="scope">
-          <span>{{ scope.row.updateDate }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="操作" width="200">
-        <template slot-scope="scope">
+    <el-card class="box-card host-list">
+      <el-form :inline="true" :model="queryFrom" class="demo-form-inline">
+        <el-form-item>
           <el-button
             size="mini"
-            @click="handleEdit(scope.$index, scope.row)"
-          >编辑
+            type="success"
+            @click="handleAdd()"
+          >添加
           </el-button>
+        </el-form-item>
+        <el-form-item>
           <el-button
             size="mini"
             type="danger"
-            @click="handleDelete(scope.$index, scope.row)"
+            @click="handleBatchDel()"
           >删除
           </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      :current-page="currentPage"
-      :page-sizes="[10, 20, 50, 100]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalItem"
-      @current-change="handleCurrentChange"
-      @size-change="handleSizeChange"
-    />
-    <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible">
-      <el-form :model="form">
-        <el-form-item label="名称" :label-width="formLabelWidth">
-          <el-input v-model="form.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="IP" :label-width="formLabelWidth">
-          <el-input v-model="form.ip" autocomplete="off" />
+        <el-form-item label="主机名称">
+          <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称"/>
         </el-form-item>
-        <el-form-item label="账户名" :label-width="formLabelWidth">
-          <el-input v-model="form.username" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="密码" :label-width="formLabelWidth">
-          <el-input v-model="form.password" autocomplete="off" />
+        <el-form-item>
+          <el-button type="primary" size="mini" @click="onQueryBtn">查询</el-button>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" :loading="isSubmiting" @click="handleDialogSubmit">确 定</el-button>
-      </div>
-    </el-dialog>
+      <el-table
+        v-loading="listLoading"
+        :data="list"
+        element-loading-text="Loading"
+        border
+        fit
+        highlight-current-row
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column
+          type="selection"
+          width="55"
+        />
+        <el-table-column align="center" label="ID" width="95">
+          <template slot-scope="scope">
+            {{ scope.row.id }}
+          </template>
+        </el-table-column>
+        <el-table-column label="主机名称" width="110">
+          <template slot-scope="scope">
+            {{ scope.row.name }}
+          </template>
+        </el-table-column>
+        <el-table-column label="IP" width="110" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.ip }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="描述">
+          <template slot-scope="scope">
+            <span>{{ scope.row.description }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间">
+          <template slot-scope="scope">
+            <span>{{ scope.row.createDate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="修改时间">
+          <template slot-scope="scope">
+            <span>{{ scope.row.updateDate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="操作" width="200">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click="handleEdit(scope.$index, scope.row)"
+            >编辑
+            </el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="handleDelete(scope.$index, scope.row)"
+            >删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        :current-page="currentPage"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="totalItem"
+        @current-change="handleCurrentChange"
+        @size-change="handleSizeChange"
+      />
+      <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible">
+        <el-form :model="form">
+          <el-form-item label="名称" :label-width="formLabelWidth">
+            <el-input v-model="form.name" autocomplete="off"/>
+          </el-form-item>
+          <el-form-item label="IP" :label-width="formLabelWidth">
+            <el-input v-model="form.ip" autocomplete="off"/>
+          </el-form-item>
+          <el-form-item label="账户名" :label-width="formLabelWidth">
+            <el-input v-model="form.username" autocomplete="off"/>
+          </el-form-item>
+          <el-form-item label="密码" :label-width="formLabelWidth">
+            <el-input v-model="form.password" autocomplete="off"/>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" :loading="isSubmiting" @click="handleDialogSubmit">确 定</el-button>
+        </div>
+      </el-dialog>
+    </el-card>
   </div>
 
 </template>
