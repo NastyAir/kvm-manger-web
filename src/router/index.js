@@ -86,7 +86,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Host',
         component: () => import('@/views/host/index'),
-        meta: { title: '主机管理', icon: 'form' }
+        meta: { title: '主机管理', icon: 'table' }
       }
     ]
   },
@@ -133,7 +133,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Form',
         component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
+        meta: { title: '表单', icon: 'form' }
       }
     ]
   },

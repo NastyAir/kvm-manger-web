@@ -1,16 +1,16 @@
 <template>
   <div class="app-container">
     <el-form ref="form" :model="form" label-width="120px">
-      <el-form-item label="Activity name">
+      <el-form-item label="名称">
         <el-input v-model="form.name" />
       </el-form-item>
-      <el-form-item label="Activity zone">
+      <el-form-item label="区域">
         <el-select v-model="form.region" placeholder="please select your zone">
-          <el-option label="Zone one" value="shanghai" />
-          <el-option label="Zone two" value="beijing" />
+          <el-option label="上海" value="shanghai" />
+          <el-option label="北京" value="beijing" />
         </el-select>
       </el-form-item>
-      <el-form-item label="Activity time">
+      <el-form-item label="时间">
         <el-col :span="11">
           <el-date-picker v-model="form.date1" type="date" placeholder="Pick a date" style="width: 100%;" />
         </el-col>
@@ -19,7 +19,7 @@
           <el-time-picker v-model="form.date2" type="fixed-time" placeholder="Pick a time" style="width: 100%;" />
         </el-col>
       </el-form-item>
-      <el-form-item label="Instant delivery">
+      <el-form-item label="即时交互">
         <el-switch v-model="form.delivery" />
       </el-form-item>
       <el-form-item label="Activity type">

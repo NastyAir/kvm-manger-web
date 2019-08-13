@@ -24,6 +24,13 @@ export function edit(data) {
   })
 }
 
+export function info(id) {
+  return request({
+    url: '/host/' + id,
+    method: 'get'
+  })
+}
+
 export function del(id) {
   return request({
     url: '/host/' + id,
