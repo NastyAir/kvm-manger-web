@@ -65,19 +65,210 @@
 
 <script>
 import { getList } from '@/api/image'
+import * as poolRequest from '@/api/storagePool'
+import * as volRequest from '@/api/storageVolume'
 export default {
   name: 'SingeForm',
   data() {
     return {
       form: {
-        diskSize: 20
+        vmName: '',
+        imageName: '',
+        hostId: 1,
+        memorySize: 512,
+        diskSize: 20,
+        cpu: 1,
+        networkInterfaceType: 'bridge'
       },
       value: [],
       list: [],
       fileList: [],
       tableData: [
 
-      ]
+      ],
+      config: {
+        poolPath: '/home/kvm/images/',
+        poolName: 'defaultPool',
+        volumePath: '/var/lib/libvirt/images/',
+        imagePath: '/home/nfsdata/image/',
+        emulatorPath: '/usr/libexec/qemu-kvm',
+        macAddress: '',
+        bridgeName: 'br0'
+      },
+      // StoragePool
+      // poolName: '',
+      // poolSize: 20,
+      // poolPath: '',
+      poolDesc: {
+        'pool': {
+          'name': 'virtimages',
+          'source': {
+            '__text': ''
+          },
+          'capacity': {
+            '_unit': 'GiB',
+            '__text': '40'
+          },
+          'allocation': '0',
+          'target': {
+            'path': '/home/kyyee/images',
+            'permissions': {
+              'mode': '0711',
+              'owner': '0',
+              'group': '0'
+            }
+          },
+          '_type': 'dir'
+        }
+      },
+      // volume
+      volumeName: '',
+      volumeSize: 20,
+      volumePath: '',
+      volumeDesc: {
+        'volume': {
+          'name': 'kvmdemo.qcow2',
+          'source': {
+            '__text': ''
+          },
+          'capacity': {
+            '_unit': 'GiB',
+            '__text': '10'
+          },
+          'allocation': '0',
+          'target': {
+            'path': '/var/lib/libvirt/images/kvmdemo.qcow2',
+            'format': {
+              '_type': 'qcow2'
+            },
+            'permissions': {
+              'mode': '0600',
+              'owner': '0',
+              'group': '0'
+            }
+          },
+          '_type': 'file'
+        }
+      },
+      // vm
+      vmDesc: {
+        'domain': {
+          'name': 'kvmdemo',
+          'uuid': 'c6e408f3-7750-47ca-8bd1-d19837271472',
+          'memory': {
+            '_unit': 'MiB',
+            '__text': '512'
+          },
+          'currentMemory': {
+            '_unit': 'MiB',
+            '__text': '512'
+          },
+          'vcpu': {
+            '_placement': 'static',
+            '__text': '1'
+          },
+          'os': {
+            'type': {
+              '_arch': 'x86_64',
+              '_machine': 'pc',
+              '__text': 'hvm'
+            },
+            'boot': [
+              {
+                '_dev': 'hd'
+              },
+              {
+                '_dev': 'cdrom'
+              }
+            ]
+          },
+          'features': {
+            'acpi': '',
+            'apic': '',
+            'pae': ''
+          },
+          'clock': {
+            '_offset': 'localtime'
+          },
+          'on_poweroff': 'destroy',
+          'on_reboot': 'restart',
+          'on_crash': 'restart',
+          'devices': {
+            'emulator': '/usr/bin/qemu-system-x86_64',
+            'disk': [
+              {
+                'driver': {
+                  '_name': 'qemu',
+                  '_type': 'qcow2'
+                },
+                'source': {
+                  '_file': '/var/lib/libvirt/images/kvmdemo.qcow2'
+                },
+                'target': {
+                  '_dev': 'hda',
+                  '_bus': 'ide'
+                },
+                '_type': 'file',
+                '_device': 'disk'
+              },
+              {
+                'source': {
+                  '_file': '/var/lib/libvirt/images/ubuntu-16.04-desktop-amd64.iso'
+                },
+                'target': {
+                  '_dev': 'hdb',
+                  '_bus': 'ide'
+                },
+                'readonly': '',
+                '_type': 'file',
+                '_device': 'cdrom'
+              }
+            ],
+            'interface': {
+              'mac': {
+                '_address': '52:54:00:f4:06:03'
+              },
+              'source': {
+                '_bridge': 'br0'
+              },
+              '_type': 'bridge'
+            },
+            'console': {
+              'target': {
+                '_port': '0'
+              },
+              '_type': 'pty'
+            },
+            'input': [
+              {
+                '_type': 'tablet',
+                '_bus': 'usb'
+              },
+              {
+                '_type': 'mouse',
+                '_bus': 'ps2'
+              },
+              {
+                '_type': 'keyboard',
+                '_bus': 'ps2'
+              }
+            ],
+            'graphics': {
+              '_type': 'vnc',
+              '_autoport': 'yes',
+              '_keymap': 'en-us',
+              '_listen': '0.0.0.0'
+            },
+            'memballoon': {
+              'stats': {
+                '_period': '10'
+              },
+              '_model': 'virtio'
+            }
+          },
+          '_type': 'kvm'
+        }
+      }
     }
   },
   created() {
@@ -89,61 +280,11 @@ export default {
   },
   methods: {
     xml2js() {
-      const xml = "<domain type='kvm'>\n" +
-    '    <name>kvmdemo</name> <!--名称必须唯一-->\n' +
-    '    <uuid>c6e408f3-7750-47ca-8bd1-d19837271472</uuid> <!--uuid必须唯一，可使用 java.util.UUID 随机生成-->\n' +
-    "    <memory unit='MiB'>512</memory> <!--最大可用内存配置-->\n" +
-    "    <currentMemory unit='MiB'>512</currentMemory>\n" +
-    "    <vcpu placement='static'>1</vcpu> <!--配置cpu-->\n" +
-    '    <os>\n' +
-    "        <type arch='x86_64' machine='pc'>hvm</type>\n" +
-    "        <boot dev='hd'/> <!--硬盘启动-->\n" +
-    "        <boot dev='cdrom'/> <!--光驱启动-->\n" +
-    '    </os>\n' +
-    '    <features>\n' +
-    '        <acpi/>\n' +
-    '        <apic/>\n' +
-    '        <pae/>\n' +
-    '    </features>\n' +
-    "    <clock offset='localtime'/>\n" +
-    '    <on_poweroff>destroy</on_poweroff>\n' +
-    '    <on_reboot>restart</on_reboot>\n' +
-    '    <on_crash>restart</on_crash>\n' +
-    '    <devices>\n' +
-    '        <emulator>/usr/bin/qemu-system-x86_64</emulator> <!--模拟器所在路径，视自己情况配置-->\n' +
-    "        <disk type='file' device='disk'>\n" +
-    "            <driver name='qemu' type='qcow2'/>\n" +
-    "            <source file='/var/lib/libvirt/images/kvmdemo.qcow2'/> <!--虚拟硬盘配置，这个地方填生成的镜像文件所在的路径即可-->\n" +
-    "            <target dev='hda' bus='ide'/>\n" +
-    '        </disk>\n' +
-    "        <!--<disk type='file' device='cdrom'>\n" +
-    "            <source file='/var/lib/libvirt/images/ubuntu-16.04-desktop-amd64.iso'/>\n" +
-    "            <target dev='hdb' bus='ide'/>\n" +
-    '            <readonly/>\n' +
-    '        </disk>-->\n' +
-    "        <interface type='bridge'> <!--网络配置，本示例配置成桥接模式-->\n" +
-    "            <mac address='52:54:00:f4:06:03'/> <!--mac 地址必须唯一-->\n" +
-    "            <source bridge='br0'/>\n" +
-    '        </interface>\n' +
-    "        <console type='pty'> <!--控制台配置，如果需要使用 virsh 命令登陆虚拟机，则必须添加-->\n" +
-    "            <target port='0'/>\n" +
-    '        </console>\n' +
-    "        <input type='tablet' bus='usb'/>\n" +
-    "        <input type='mouse' bus='ps2'/>\n" +
-    "        <input type='keyboard' bus='ps2'/>\n" +
-    "        <graphics type='vnc' autoport='yes' keymap='en-us'\n" +
-    "                  listen='0.0.0.0'/> <!--VNC配置，autoport=\"yes\"表示自动分配VNC端口，推荐使用，listen=\"0.0.0.0\"表示监听所有IP-->\n" +
-    '        <memballoon model="virtio"> <!--内存监控配置，添加此配置，才能正常取得内存使用情况-->\n' +
-    '            <stats period="10"/><!--每10s钟收集一次-->\n' +
-    '        </memballoon>\n' +
-    '    </devices>\n' +
-    '</domain>'
-      var jsobj = this.$x2js.xml2js(xml)
-      console.log(jsobj)
-      this.tableData.push({ device: '内存', abstract: jsobj.domain.currentMemory.__text + jsobj.domain.currentMemory._unit })
-      this.tableData.push({ device: '处理器', abstract: jsobj.domain.vcpu.__text })
-      this.tableData.push({ device: '网络适配器', abstract: jsobj.domain.devices.interface._type })
-      // this.tableData.push({ device: '硬盘', abstract: this.form.diskSize + ' GB' })
+      // var jsobj = this.vmDesc
+      this.tableData.push({ device: '内存', abstract: this.form.memorySize + 'MB' })
+      this.tableData.push({ device: '处理器', abstract: this.form.cpu })
+      this.tableData.push({ device: '网络适配器', abstract: this.form.networkInterfaceType })
+      this.tableData.push({ device: '硬盘', abstract: this.form.diskSize + ' GB' })
       console.log(this.tableData)
     },
     getImageList() {
@@ -184,9 +325,120 @@ export default {
     handlePreview(file) {
       console.log(file)
     },
+    checkPool() {
+      let r
+      poolRequest.info(this.form.hostId, this.config.poolName).then(response => {
+        console.log(response)
+        r = response
+      }).catch((err) => {
+        console.log(err)
+      })
+      return r
+    },
     /** * 提交**/
-    onSubmit() {
+    async onSubmit() {
+      let error = true
+      let hasPool = true
+      await poolRequest.info(this.form.hostId, this.config.poolName).then(response => {
+        if (!response.success) {
+          hasPool = false
+        }
+        error = false
+      }).catch((err) => {
+        console.log(err)
+      })
+      if (error) {
+        this.$message('查询存储状态失败，请联系管理员')
+        return
+      } else {
+        hasPool = true
+        error = true
+      }
+      if (!hasPool) {
+      // 创建存储池
+        await poolRequest.add({
+          hostId: this.form.hostId,
+          xmlDesc: this.getPoolXml()
+        }).then(response => {
+        // this.states = response.result
+          this.$message('创建存储池' + response.success ? '成功' : '失败')
+          error = !response.success
+        }).catch(() => {
+          this.$message('无法完成当前请求')
+          error = true
+        })
+
+        if (error) {
+          this.$message('创建存储池失败，请联系管理员')
+          return
+        } else {
+          error = true
+        }
+      }
+      // 创建存储卷
+      await volRequest.add({
+        hostId: this.form.hostId,
+        poolName: this.config.poolName,
+        volumeName: this.volumeDesc.volume.name,
+        xmlDesc: this.getVolumeXml()
+      }).then(response => {
+        // this.states = response.result
+        this.$message('创建存储卷' + response.success ? '成功' : '失败')
+      }).catch(() => {
+        this.$message('无法完成当前请求')
+        error = true
+      })
+      if (error) {
+        return
+      }
+      // 创建虚拟机
       console.log(this.form)
+    },
+    getPoolXml() {
+      this.poolDesc.pool.name = this.config.poolName
+      this.poolDesc.pool.capacity.__text = this.form.diskSize
+      this.poolDesc.pool.target.path = this.config.poolPath
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + this.$x2js.js2xml(this.poolDesc)
+    },
+    getVolumeXml() {
+      this.volumeDesc.volume.name = this.getUuid() + '.qcow2'
+      this.volumeDesc.volume.capacity.__text = this.form.diskSize
+      this.volumeDesc.volume.target.path = this.form.volumePath + this.volumeDesc.volume.name
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + this.$x2js.js2xml(this.volumeDesc)
+    },
+    getVmXml() {
+      this.vmDesc.domain.name = this.form.vmName
+      this.vmDesc.domain.uuid = this.getUuid()
+      this.vmDesc.domain.memory.__text = this.form.memorySize
+      this.vmDesc.domain.vcpu.__text = this.form.cpu
+      this.vmDesc.domain.devices.emulator = this.config.emulatorPath
+      this.vmDesc.domain.devices.disk[0].source = this.volumeDesc.volume.name
+      this.vmDesc.domain.devices.disk[1].source = this.poolDesc.pool.target.path
+      this.vmDesc.domain.devices.interface.mac._address = this.genMAC()
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + this.$x2js.js2xml(this.vmDesc)
+    },
+    getMacAddress() {
+      return ''
+    },
+    genMAC() {
+      var hexDigits = '0123456789ABCDEF'
+      var macAddress = ''
+      for (var i = 0; i < 6; i++) {
+        macAddress += hexDigits.charAt(Math.round(Math.random() * 15))
+        macAddress += hexDigits.charAt(Math.round(Math.random() * 15))
+        if (i !== 5) macAddress += ':'
+      }
+
+      return macAddress
+    },
+    getUuid() {
+      var d = new Date().getTime()
+      var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random() * 16) % 16 | 0
+        d = Math.floor(d / 16)
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+      })
+      return uuid
     }
   }
 
