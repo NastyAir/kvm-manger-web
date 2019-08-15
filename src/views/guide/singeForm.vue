@@ -67,6 +67,7 @@
 import { getList } from '@/api/image'
 import * as poolRequest from '@/api/storagePool'
 import * as volRequest from '@/api/storageVolume'
+import * as domainRequest from '@/api/domain'
 export default {
   name: 'SingeForm',
   data() {
@@ -122,8 +123,8 @@ export default {
         }
       },
       // volume
-      volumeName: '',
-      volumeSize: 20,
+      // volumeName: '',
+      // volumeSize: 20,
       volumePath: '',
       volumeDesc: {
         'volume': {
@@ -285,7 +286,8 @@ export default {
       this.tableData.push({ device: '处理器', abstract: this.form.cpu })
       this.tableData.push({ device: '网络适配器', abstract: this.form.networkInterfaceType })
       this.tableData.push({ device: '硬盘', abstract: this.form.diskSize + ' GB' })
-      console.log(this.tableData)
+      // console.log(this.tableData)
+      console.log(this.randomMac())
     },
     getImageList() {
       getList().then(response => {
@@ -361,7 +363,7 @@ export default {
           xmlDesc: this.getPoolXml()
         }).then(response => {
         // this.states = response.result
-          this.$message('创建存储池' + response.success ? '成功' : '失败')
+          this.$message('创建存储池' + (response.success ? '成功' : '失败'))
           error = !response.success
         }).catch(() => {
           this.$message('无法完成当前请求')
@@ -382,17 +384,29 @@ export default {
         volumeName: this.volumeDesc.volume.name,
         xmlDesc: this.getVolumeXml()
       }).then(response => {
-        // this.states = response.result
-        this.$message('创建存储卷' + response.success ? '成功' : '失败')
+        this.$message('创建存储卷' + (response.success ? '成功' : '失败'))
+        error = false
       }).catch(() => {
         this.$message('无法完成当前请求')
         error = true
       })
       if (error) {
+        this.$message('创建存储卷失败，请联系管理员')
         return
+      } else {
+        error = true
       }
       // 创建虚拟机
-      console.log(this.form)
+      await domainRequest.add({
+        hostId: this.form.hostId,
+        xmlDesc: this.getVmXml()
+      }).then(response => {
+        // this.states = response.result
+        this.$message('创建虚拟机' + (response.success ? '成功' : '失败'))
+      }).catch(() => {
+        this.$message('无法完成当前请求')
+        error = true
+      })
     },
     getPoolXml() {
       this.poolDesc.pool.name = this.config.poolName
@@ -403,7 +417,8 @@ export default {
     getVolumeXml() {
       this.volumeDesc.volume.name = this.getUuid() + '.qcow2'
       this.volumeDesc.volume.capacity.__text = this.form.diskSize
-      this.volumeDesc.volume.target.path = this.form.volumePath + this.volumeDesc.volume.name
+      this.volumeDesc.volume.target.path = this.config.poolPath + this.volumeDesc.volume.name
+      this.volumePath = this.volumeDesc.volume.target.path
       return '<?xml version="1.0" encoding="UTF-8"?>\n' + this.$x2js.js2xml(this.volumeDesc)
     },
     getVmXml() {
@@ -412,24 +427,24 @@ export default {
       this.vmDesc.domain.memory.__text = this.form.memorySize
       this.vmDesc.domain.vcpu.__text = this.form.cpu
       this.vmDesc.domain.devices.emulator = this.config.emulatorPath
-      this.vmDesc.domain.devices.disk[0].source = this.volumeDesc.volume.name
-      this.vmDesc.domain.devices.disk[1].source = this.poolDesc.pool.target.path
-      this.vmDesc.domain.devices.interface.mac._address = this.genMAC()
+      this.vmDesc.domain.devices.disk[0].source._file = this.volumePath
+      this.vmDesc.domain.devices.disk[1].source._file = this.config.imagePath + this.form.imageName
+      this.vmDesc.domain.devices.interface.mac._address = this.randomMac()
       return '<?xml version="1.0" encoding="UTF-8"?>\n' + this.$x2js.js2xml(this.vmDesc)
     },
     getMacAddress() {
       return ''
     },
-    genMAC() {
-      var hexDigits = '0123456789ABCDEF'
-      var macAddress = ''
-      for (var i = 0; i < 6; i++) {
-        macAddress += hexDigits.charAt(Math.round(Math.random() * 15))
-        macAddress += hexDigits.charAt(Math.round(Math.random() * 15))
-        if (i !== 5) macAddress += ':'
-      }
-
-      return macAddress
+    randomMac() {
+      const mac = [
+        (0x52).toString(16),
+        (0x54).toString(16),
+        (0x00).toString(16),
+        Math.floor((Math.random() * 0xff)).toString(16),
+        Math.floor((Math.random() * 0xff)).toString(16),
+        Math.floor((Math.random() * 0xff)).toString(16)
+      ]
+      return mac.join(':')
     },
     getUuid() {
       var d = new Date().getTime()
