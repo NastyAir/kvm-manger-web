@@ -15,6 +15,7 @@
             />
             <el-tree
               ref="tree"
+              node-key="node-key"
               class="filter-tree"
               :load="loadNode"
               lazy
@@ -33,10 +34,40 @@
           </div>
           <div class="text item">
             <el-container>
-              <el-aside>
-                <el-button> 启动虚拟机</el-button>
-                <el-button> 编辑硬件配置</el-button>
+              <el-aside class="vm-info">
+                <template v-if="domain.info.state=='VIR_DOMAIN_SHUTOFF'">
+                  <el-row class="row-class action-btn">
+                    <el-button
+                      type="success"
+                      @click="sendActionDomainRequest(hostId,uuid,'start')"
+                    >启动虚拟机
+                    </el-button>
+                  </el-row>
+                </template>
+                <template v-else-if="domain.info.state=='VIR_DOMAIN_PAUSED'">
+                  <el-row class="row-class action-btn">
+                    <el-button type="danger" @click="sendActionDomainRequest(hostId,uuid,'resume')">恢复虚拟机</el-button>
+                  </el-row>
+                </template>
+                <template v-else-if="domain.info.state=='VIR_DOMAIN_RUNNING'">
+                  <el-row class="row-class action-btn">
+                    <el-button type="danger" @click="sendActionDomainRequest(hostId,uuid,'shutdown')">关机虚拟机</el-button>
+                  </el-row>
+                  <el-row class="row-class action-btn">
+                    <el-button type="danger" @click="sendActionDomainRequest(hostId,uuid,'destroy')">关闭虚拟机电源</el-button>
+                  </el-row>
+                  <el-row class="row-class action-btn">
+                    <el-button
+                      type="warning"
+                      @click="sendActionDomainRequest(hostId,uuid,'suspend')"
+                    >挂起虚拟机
+                    </el-button>
+                  </el-row>
+                </template>
 
+                <el-row class="row-class">
+                  <el-button>编辑硬件配置</el-button>
+                </el-row>
                 <el-divider content-position="left">设备详情</el-divider>
                 <el-table
                   :data="tableData"
@@ -57,7 +88,7 @@
                 状态：{{ domain.info.state }}
               </el-aside>
               <el-main>
-                <iframe :src="vncUrl" style="width: 1028px;height: 798px"/>
+                <iframe :src="vncUrl" style="width: 1028px;height: 798px" />
               </el-main>
             </el-container>
           </div>
@@ -78,6 +109,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { getList } from '@/api/host'
 import * as domainRequest from '@/api/domain'
 
@@ -116,8 +148,16 @@ export default {
           state: 'VIR_DOMAIN_RUNNING'
         }*/
       },
+      config: {
+        proxyIp: '10.6.30.157',
+        proxyPort: '8888',
+        websockifyIp: '10.6.30.157',
+        websockifyPort: '6080'
+      },
       tableData: [],
-      vncUrl: ''
+      vncUrl: '',
+      hostId: 0,
+      uuid: ''
     }
   },
   watch: {
@@ -125,7 +165,13 @@ export default {
       this.$refs.tree.filter(val)
     }
   },
-
+  computed: {
+    ...mapGetters([
+      'domainList',
+      'getDomainByHostId',
+      'getDomainByHostIdAndId'
+    ])
+  },
   methods: {
     // 获取主机列表数据
     async sendGetHostRequest() {
@@ -140,15 +186,39 @@ export default {
       return list
     },
     async sendGetDomainRequest(hostId) {
-      let list = []
+      await this.$store.dispatch('domain/getDomains', hostId).then(() => {
+      }).catch((e) => {
+        this.$message('无法完成当前请求')
+      })
+      /*      let list = []
       await domainRequest.getList({ hostId: hostId }).then(response => {
         list = response.result
-        // console.log('getList', list)
+      }).catch(() => {
+        this.$message('无法完成当前请求')
+      })
+      return list*/
+    },
+    async sendGetDomainByUUIDRequest(uuid, hostId) {
+      let domain = {}
+      await domainRequest.getByUUID(uuid, hostId).then(response => {
+        domain = response.result
       }).catch(() => {
         this.$message('无法完成当前请求')
       })
       // console.log('return', list)
-      return list
+      return domain
+    },
+    sendActionDomainRequest(hostId, uuid, action) {
+      const param = {
+        hostId: hostId,
+        uuid: uuid,
+        action: action
+      }
+      domainRequest.action(param).then(response => {
+        this.$message('命令已发送')
+      }).catch(() => {
+        this.$message('无法完成当前请求')
+      })
     },
     // 树 过滤方法
     filterNode(value, data) {
@@ -157,10 +227,12 @@ export default {
     },
     handleTreeClick(data, node, self) {
       if (node.level === 3) {
-        this.domain = data
-
-        this.vncUrl = 'http://10.6.30.105:8888/vnc_lite.html?host=10.6.30.105&port=6080&path=websockify%2f%3ftoken=' + data.uuid
-        this.setTableData(data.XMLDesc)
+        this.domain = this.getDomainByHostIdAndId(data.hostId, data.uuid)
+        // console.log('domain', data, data.uuid,this.domain)
+        this.hostId = this.domain.hostId
+        this.uuid = this.domain.uuid
+        this.vncUrl = 'http://' + this.config.proxyIp + ':' + this.config.proxyPort + '/vnc_lite.html?host=' + this.config.websockifyIp + '&port=' + this.config.websockifyPort + '&path=websockify%2f%3ftoken=' + data.uuid
+        this.setTableData(this.domain.XMLDesc)
       }
     },
     setTableData(xml) {
@@ -174,24 +246,25 @@ export default {
     // 树 加载节点方法
     async loadNode(node, resolve) {
       if (node.level === 0) {
-        return resolve([{ label: '主机' }])
+        return resolve([{ label: '主机', nodeKey: 'root' }])
       }
       if (node.level === 1) {
-        return resolve(this.formatHostData(await this.sendGetHostRequest()))
+        return resolve(this.formatHostListData(await this.sendGetHostRequest()))
       }
       if (node.level === 2) {
         // console.log(node)
-        return resolve(this.formatInstanceData(await this.sendGetDomainRequest(node.data.id)))
+        await this.sendGetDomainRequest(node.data.id)
+        return resolve(this.formatInstanceListData(this.getDomainByHostId(node.data.id), node.data.id))
       }
     },
     // 主机 数据格式化
-    formatHostData(list) {
-      // const list = data.result.content
+    formatHostListData(list) {
       const resultList = []
       for (let i = 0; i < list.length; i++) {
         const host = list[i]
         const obj = {
           id: host.id,
+          nodeKey: 'host' + host.id + host.name,
           label: host.name,
           leaf: false
         }
@@ -201,16 +274,18 @@ export default {
       return resultList
     },
     // 虚拟机 数据格式化
-    formatInstanceData(list) {
+    formatInstanceListData(list, hostId) {
       // const list = data.result.content
       const resultList = []
       for (let i = 0; i < list.length; i++) {
         const instance = list[i]
         const obj = {
           id: instance.id,
+          nodeKey: 'domain' + instance.id + instance.name,
           label: instance.name,
           leaf: true,
           name: instance.name,
+          hostId: hostId,
           uuid: instance.uuid,
           XMLDesc: instance.XMLDesc,
           info: instance.info
@@ -219,6 +294,19 @@ export default {
       }
       // console.log('format', list, resultList)
       return resultList
+    },
+    formatInstanceData(instance, hostId) {
+      return {
+        id: instance.id,
+        nodeKey: 'domain' + instance.id + instance.name,
+        label: instance.name,
+        leaf: true,
+        name: instance.name,
+        hostId: hostId,
+        uuid: instance.uuid,
+        XMLDesc: instance.XMLDesc,
+        info: instance.info
+      }
     }
 
   }
@@ -226,6 +314,12 @@ export default {
 </script>
 
 <style scoped>
+  .vm-info > .row-class{
+    margin: 10px 10px
+  }
+  .vm-info > .action-btn > button{
+    width: 100%;
+  }
   /*.host-list > .text {*/
   /*  font-size: 14px;*/
   /*}*/
@@ -244,7 +338,7 @@ export default {
   /*  clear: both*/
   /*}*/
 
-  .host-list{
-    width: 100%;
-  }
+  /*.host-list{*/
+  /*  width: 100%;*/
+  /*}*/
 </style>
