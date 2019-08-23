@@ -4,9 +4,9 @@ const getters = {
   token: state => state.user.token,
   avatar: state => state.user.avatar,
   name: state => state.user.name,
-  domainList: state => state.domain.domainList,
+  domainList: state => state.domain.domainListMap,
   getDomainByHostId: (state) => (hostId) => {
-    return state.domain.domainList.get(hostId)
+    return state.domain.domainListMap.get(hostId)
   },
   getDomainByHostIdAndId: (state, getters) => (hostId, uuid) => {
     const list = getters.getDomainByHostId(hostId)

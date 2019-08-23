@@ -190,13 +190,16 @@ export default {
       }).catch((e) => {
         this.$message('无法完成当前请求')
       })
-      /*      let list = []
-      await domainRequest.getList({ hostId: hostId }).then(response => {
-        list = response.result
-      }).catch(() => {
+    },
+    async sendGetDomainInfoRequest(hostId, uuid) {
+      console.log('sendGetDomainInfoRequest', hostId, uuid)
+      await this.$store.dispatch('domain/getDomainInfo', { hostId: hostId, uuid: uuid }).then(() => {
+        this.domain = this.getDomainByHostIdAndId(hostId, uuid)
+        this.vncUrl += '&time=' + new Date().getTime()
+      }).catch((e) => {
+        console.error(e)
         this.$message('无法完成当前请求')
       })
-      return list*/
     },
     async sendGetDomainByUUIDRequest(uuid, hostId) {
       let domain = {}
@@ -208,14 +211,16 @@ export default {
       // console.log('return', list)
       return domain
     },
-    sendActionDomainRequest(hostId, uuid, action) {
+    async sendActionDomainRequest(hostId, uuid, action) {
+      // console.log('sendActionDomainRequest',hostId, uuid, action)
       const param = {
-        hostId: hostId,
+        hostId: this.hostId,
         uuid: uuid,
         action: action
       }
       domainRequest.action(param).then(response => {
         this.$message('命令已发送')
+        this.sendGetDomainInfoRequest(hostId, uuid)
       }).catch(() => {
         this.$message('无法完成当前请求')
       })
@@ -228,8 +233,8 @@ export default {
     handleTreeClick(data, node, self) {
       if (node.level === 3) {
         this.domain = this.getDomainByHostIdAndId(data.hostId, data.uuid)
-        // console.log('domain', data, data.uuid,this.domain)
-        this.hostId = this.domain.hostId
+        this.hostId = data.hostId
+        console.log('domain', data, data.uuid, this.domain)
         this.uuid = this.domain.uuid
         this.vncUrl = 'http://' + this.config.proxyIp + ':' + this.config.proxyPort + '/vnc_lite.html?host=' + this.config.websockifyIp + '&port=' + this.config.websockifyPort + '&path=websockify%2f%3ftoken=' + data.uuid
         this.setTableData(this.domain.XMLDesc)
@@ -275,6 +280,7 @@ export default {
     },
     // 虚拟机 数据格式化
     formatInstanceListData(list, hostId) {
+      console.log(list, hostId)
       // const list = data.result.content
       const resultList = []
       for (let i = 0; i < list.length; i++) {

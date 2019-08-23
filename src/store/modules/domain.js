@@ -1,15 +1,26 @@
 import * as domainRequest from '@/api/domain'
 
 const state = {
-  domainList: new Map()
+  domainListMap: new Map()
 }
 
 const mutations = {
   SET_DOMAIN_LIST: (state, map) => {
-    state.domainList = map
+    state.domainListMap = map
   },
-  SET_DOMAIN: (state,hostId, domain) => {
-    state.domainList.get(hostId).set(domain)
+  SET_DOMAIN: (state, param) => {
+    const { hostId, domain } = param
+    const list = state.domainListMap.get(hostId)
+    let index = -1
+    for (let i = 0; i < list.length; i++) {
+      const data = list[i]
+      if (data.uuid === domain.uuid) {
+        index = i
+        break
+      }
+    }
+    list.splice(index, 1, domain)
+    state.domainListMap.set(list)
   }
 }
 const actions = {
@@ -27,12 +38,14 @@ const actions = {
       })
     })
   },
-  getDomainInfo({ commit }, hostId, uuid) {
+  getDomainInfo({ commit }, param) {
     return new Promise((resolve, reject) => {
+      const { hostId, uuid } = param
+      console.log('getDomainInfo', hostId, uuid)
       domainRequest.getByUUID(hostId, uuid).then(response => {
         const { result } = response
         console.log(response, result)
-        commit('SET_DOMAIN', hostId, result)
+        commit('SET_DOMAIN', { hostId: hostId, domain: result })
         resolve()
       }).catch(error => {
         reject(error)
