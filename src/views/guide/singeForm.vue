@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { getList } from '@/api/image'
+import { getTreeList } from '@/api/image'
 import * as poolRequest from '@/api/storagePool'
 import * as volRequest from '@/api/storageVolume'
 import * as domainRequest from '@/api/domain'
@@ -290,7 +290,7 @@ export default {
       console.log(this.randomMac())
     },
     getImageList() {
-      getList().then(response => {
+      getTreeList().then(response => {
         // this.states = response.result
         this.list = response.result.map(item => {
           return { value: item, label: item }

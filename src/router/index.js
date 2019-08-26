@@ -86,7 +86,19 @@ export const constantRoutes = [
         path: 'index',
         name: 'Host',
         component: () => import('@/views/host/index'),
-        meta: { title: '主机管理', icon: 'table' }
+        meta: { title: '主机管理', icon: 'tree' }
+      }
+    ]
+  },
+  {
+    path: '/image',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Image',
+        component: () => import('@/views/image/index'),
+        meta: { title: '镜像管理', icon: 'table' }
       }
     ]
   },
@@ -98,7 +110,7 @@ export const constantRoutes = [
         path: 'index',
         name: 'Instance',
         component: () => import('@/views/instance/index'),
-        meta: { title: '实例管理', icon: 'form' }
+        meta: { title: '实例管理', icon: 'nested' }
       }
     ]
   },
