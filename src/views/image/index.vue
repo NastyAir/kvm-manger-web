@@ -2,12 +2,23 @@
   <div class="app-container">
     <el-form :inline="true" :model="queryFrom" class="demo-form-inline">
       <el-form-item>
-        <el-button
-          size="mini"
-          type="success"
-          @click="handleAdd()"
-        >添加
-        </el-button>
+
+        <el-upload
+          ref="upload"
+          class="upload-demo"
+          action="/image/file"
+          :headers="uploadHeader"
+          :on-preview="handlePreview"
+          :on-exceed="handleExceed"
+          :on-success="handleSuccess"
+          :file-list="fileList"
+        >
+          <el-button
+            size="mini"
+            type="success"
+          >上传
+          </el-button>
+        </el-upload>
       </el-form-item>
       <el-form-item>
         <el-button
@@ -16,6 +27,18 @@
           @click="handleBatchDel()"
         >删除
         </el-button>
+        <el-upload
+          ref="upload"
+          class="upload-demo"
+          action="/image/file"
+          :headers="uploadHeader"
+          :on-preview="handlePreview"
+          :on-exceed="handleExceed"
+          :on-success="handleSuccess"
+          :file-list="fileList"
+        >
+          <!--            <div slot="tip" class="el-upload__tip">只能上传img文件，且不超过5G</div>-->
+        </el-upload>
       </el-form-item>
       <el-form-item label="主机名称">
         <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称" />
@@ -38,7 +61,7 @@
         type="selection"
         width="55"
       />
-      <el-table-column label="镜像名称" >
+      <el-table-column label="镜像名称">
         <template slot-scope="scope">
           {{ scope.row.name }}
         </template>
@@ -55,17 +78,6 @@
       </el-table-column>
       <el-table-column align="center" label="操作" width="250">
         <template slot-scope="scope">
-          <el-button
-            size="mini"
-            @click="handleEdit(scope.$index, scope.row)"
-          >编辑
-          </el-button>
-          <el-button
-            size="mini"
-            type="success"
-            @click="getInfo(scope.row.id)"
-          >详情
-          </el-button>
           <el-button
             size="mini"
             type="danger"
@@ -89,8 +101,9 @@
 
 <script>
 import * as imageRequest from '@/api/image'
+import { getToken } from '@/utils/auth'
 export default {
-  name: 'Image',
+  name: 'Images',
   data() {
     return {
       // 列表数据
@@ -99,22 +112,22 @@ export default {
       listLoading: true,
       multipleSelection: [],
       /**
-       *  分页相关
-       */
+         *  分页相关
+         */
       currentPage: 0,
       totalItem: 0,
       pageSize: 10,
       /**
-       *  查询条件
-       */
+         *  查询条件
+         */
       queryFrom: {
         hostName: '',
         currentPage: 0,
         pageSize: 10
       },
       /**
-       *  新增/编辑弹窗
-       */
+         *  新增/编辑弹窗
+         */
       form: {
         name: '',
         ip: '',
@@ -135,7 +148,10 @@ export default {
       dialogInfoVisible: false,
       formLabelWidth: '120px',
       dialogTitle: '',
-      isSubmiting: false
+      isSubmiting: false,
+      // 上传
+      uploadHeader: { accessToken: getToken() },
+      fileList: []
     }
   },
   // 创建完成 自动加载
@@ -153,7 +169,24 @@ export default {
         this.currentPage = response.result.pageable.offset / response.result.pageable.pageSize + 1
         this.pageSize = response.result.pageable.pageSize
       }).catch(() => {
-        this.$message('无法完成当前请求')
+        this.$message('无法完成获取列表数据请求')
+        this.listLoading = false
+      })
+    },
+    // 发送删除请求
+    sendDelRequest(name) {
+      imageRequest.del({ filename: name }).then(response => {
+        if (response.success) {
+          this.$message({
+            message: '镜像删除成功',
+            type: 'success'
+          })
+          this.fetchData()
+        } else {
+          this.$message.error('镜像删除失败。' + response.msg)
+        }
+      }).catch(() => {
+        this.$message('无法完成镜像删除请求')
         this.listLoading = false
       })
     },
@@ -177,29 +210,18 @@ export default {
     // 删除按钮点击事件
     handleDelete(index, row) {
       // console.log(index, row)
-      this.$confirm('此操作将永久删除该主机, 是否继续?', '提示', {
+      this.$confirm('此操作将永久删除该镜像, 是否继续?', '删除确认', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'error'
       }).then(() => {
-        this.sendDelRequest(row.id)
+        this.sendDelRequest(row.name)
       }).catch(() => {
         this.$message({
           type: 'info',
           message: '已取消删除'
         })
       })
-    },
-    // 添加按钮点击事件
-    handleAdd() {
-      this.dialogTitle = '添加'
-      this.dialogFormVisible = true
-      this.form = {
-        name: '',
-        ip: '',
-        username: '',
-        password: ''
-      }
     },
     // 批量删除按钮点击事件
     handleBatchDel() {
@@ -231,6 +253,24 @@ export default {
     // 多选
     handleSelectionChange(val) {
       this.multipleSelection = val
+    },
+    // 上传
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
+    },
+    handleSuccess(response, file, fileList) {
+      if (response.success) {
+        this.$message({
+          message: '上传成功',
+          type: 'success'
+        })
+        this.fetchData()
+      } else {
+        this.$message.error(`上传失败`)
+      }
+    },
+    handlePreview(file) {
+      console.log(file)
     }
   }
 }

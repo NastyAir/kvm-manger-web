@@ -19,17 +19,17 @@
               :value="item.value"
             />
           </el-select>
-          <el-button type="success" @click="submitUpload">上传新镜像</el-button>
           <el-upload
             ref="upload"
             class="upload-demo"
             action="/image/file"
+            :headers="uploadHeader"
             :on-preview="handlePreview"
             :on-exceed="handleExceed"
+            :on-success="handleSuccess"
             :file-list="fileList"
           >
-
-            <!--            <div slot="tip" class="el-upload__tip">只能上传img文件，且不超过5G</div>-->
+            <el-button type="success">上传新镜像</el-button>
           </el-upload>
         </el-form-item>
         <el-form-item label="磁盘大小(GB)">
@@ -68,14 +68,17 @@ import { getTreeList } from '@/api/image'
 import * as poolRequest from '@/api/storagePool'
 import * as volRequest from '@/api/storageVolume'
 import * as domainRequest from '@/api/domain'
+import { getToken } from '@/utils/auth'
+
 export default {
   name: 'SingeForm',
   data() {
     return {
+      uploadHeader: { accessToken: getToken() },
       form: {
         vmName: '',
         imageName: '',
-        hostId: 1,
+        hostId: 26,
         memorySize: 512,
         diskSize: 20,
         cpu: 1,
@@ -320,6 +323,16 @@ export default {
     },
     handleRemove(file, fileList) {
       console.log(file, fileList)
+    },
+    handleSuccess(response, file, fileList) {
+      if (response.success) {
+        this.$message({
+          message: '上传成功',
+          type: 'success'
+        })
+      } else {
+        this.$message.error(`上传失败`)
+      }
     },
     handleExceed(files, fileList) {
       this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)

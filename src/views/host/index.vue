@@ -8,6 +8,7 @@
           @click="handleAdd()"
         >添加
         </el-button>
+
       </el-form-item>
       <el-form-item>
         <el-button
@@ -18,7 +19,7 @@
         </el-button>
       </el-form-item>
       <el-form-item label="主机名称">
-        <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称"/>
+        <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" size="mini" @click="onQueryBtn">查询</el-button>
@@ -102,16 +103,16 @@
     <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible">
       <el-form :model="form">
         <el-form-item label="名称" :label-width="formLabelWidth">
-          <el-input v-model="form.name" autocomplete="off"/>
+          <el-input v-model="form.name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="IP" :label-width="formLabelWidth">
-          <el-input v-model="form.ip" autocomplete="off"/>
+          <el-input v-model="form.ip" autocomplete="off" />
         </el-form-item>
         <el-form-item label="账户名" :label-width="formLabelWidth">
-          <el-input v-model="form.username" autocomplete="off"/>
+          <el-input v-model="form.username" autocomplete="off" />
         </el-form-item>
         <el-form-item label="密码" :label-width="formLabelWidth">
-          <el-input v-model="form.password" autocomplete="off"/>
+          <el-input v-model="form.password" autocomplete="off" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -123,28 +124,28 @@
       <template>
         <div :model="formView">
           <span>核心: </span>
-          <span>{{formView.cores}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.cores }}</span>
+          <el-divider />
           <span>CPU数: </span>
-          <span>{{formView.cpus}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.cpus }}</span>
+          <el-divider />
           <span>存储: </span>
-          <span>{{formView.memory}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.memory }}</span>
+          <el-divider />
           <span>赫兹: </span>
-          <span>{{formView.mhz}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.mhz }}</span>
+          <el-divider />
           <span>型号: </span>
-          <span>{{formView.model}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.model }}</span>
+          <el-divider />
           <span>节点: </span>
-          <span>{{formView.nodes}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.nodes }}</span>
+          <el-divider />
           <span>插口: </span>
-          <span>{{formView.sockets}}</span>
-          <el-divider></el-divider>
+          <span>{{ formView.sockets }}</span>
+          <el-divider />
           <span>线程: </span>
-          <span>{{formView.threads}}</span>
+          <span>{{ formView.threads }}</span>
         </div>
       </template>
       <div slot="footer" class="dialog-footer">

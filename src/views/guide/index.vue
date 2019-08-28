@@ -8,7 +8,7 @@
         <el-step title="自定义硬件" />
       </el-steps>
       <div v-if="active == 0">
-        <ImageView></ImageView>
+        <ImageView />
       </div>
       <el-button style="margin-top: 12px;" @click="next">下一步</el-button>
     </el-card>

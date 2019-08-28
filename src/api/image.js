@@ -7,10 +7,19 @@ export function getTreeList(params) {
     params
   })
 }
+
 export function getList(params) {
   return request({
     url: '/image',
     method: 'get',
+    params
+  })
+}
+
+export function del(params) {
+  return request({
+    url: '/image/file',
+    method: 'delete',
     params
   })
 }

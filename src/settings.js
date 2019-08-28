@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: 'Vue Admin Template',
+  title: 'KVM Manager',
 
   /**
    * @type {boolean} true | false

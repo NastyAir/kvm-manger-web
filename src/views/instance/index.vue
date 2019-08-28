@@ -54,6 +54,9 @@
                     <el-button type="danger" @click="sendActionDomainRequest(hostId,uuid,'shutdown')">关机虚拟机</el-button>
                   </el-row>
                   <el-row class="row-class action-btn">
+                    <el-button type="danger" @click="sendActionDomainRequest(hostId,uuid,'restart')">重启虚拟机</el-button>
+                  </el-row>
+                  <el-row class="row-class action-btn">
                     <el-button type="danger" @click="sendActionDomainRequest(hostId,uuid,'destroy')">关闭虚拟机电源</el-button>
                   </el-row>
                   <el-row class="row-class action-btn">

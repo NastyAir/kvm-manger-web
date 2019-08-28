@@ -96,7 +96,7 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        name: 'Image',
+        name: 'Images',
         component: () => import('@/views/image/index'),
         meta: { title: '镜像管理', icon: 'table' }
       }
