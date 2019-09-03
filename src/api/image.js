@@ -23,3 +23,18 @@ export function del(params) {
     params
   })
 }
+
+export function batchDel(fileNames) {
+  return request({
+    url: '/image/file/batch',
+    method: 'delete',
+    params: {
+      fileNames: fileNames
+    },
+    paramsSerializer: params => {
+      const yourNewParams = params.fileNames.map(_ => `fileNames=${_}`).join('&')
+      console.log(yourNewParams)
+      return yourNewParams
+    }
+  })
+}

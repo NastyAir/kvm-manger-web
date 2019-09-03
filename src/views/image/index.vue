@@ -27,25 +27,13 @@
           @click="handleBatchDel()"
         >删除
         </el-button>
-        <el-upload
-          ref="upload"
-          class="upload-demo"
-          action="/image/file"
-          :headers="uploadHeader"
-          :on-preview="handlePreview"
-          :on-exceed="handleExceed"
-          :on-success="handleSuccess"
-          :file-list="fileList"
-        >
-          <!--            <div slot="tip" class="el-upload__tip">只能上传img文件，且不超过5G</div>-->
-        </el-upload>
       </el-form-item>
-      <el-form-item label="主机名称">
-        <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称" />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" size="mini" @click="onQueryBtn">查询</el-button>
-      </el-form-item>
+      <!--      <el-form-item label="主机名称">-->
+      <!--        <el-input v-model="queryFrom.hostName" size="mini" placeholder="主机名称" />-->
+      <!--      </el-form-item>-->
+      <!--      <el-form-item>-->
+      <!--        <el-button type="primary" size="mini" @click="onQueryBtn">查询</el-button>-->
+      <!--      </el-form-item>-->
     </el-form>
     <el-table
       v-loading="listLoading"
@@ -87,15 +75,15 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      :current-page="currentPage"
-      :page-sizes="[10, 20, 50, 100]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalItem"
-      @current-change="handleCurrentChange"
-      @size-change="handleSizeChange"
-    />
+    <!--    <el-pagination-->
+    <!--      :current-page="currentPage"-->
+    <!--      :page-sizes="[10, 20, 50, 100]"-->
+    <!--      :page-size="pageSize"-->
+    <!--      layout="total, sizes, prev, pager, next, jumper"-->
+    <!--      :total="totalItem"-->
+    <!--      @current-change="handleCurrentChange"-->
+    <!--      @size-change="handleSizeChange"-->
+    <!--    />-->
   </div>
 </template>
 
@@ -165,10 +153,11 @@ export default {
       imageRequest.getList(this.queryFrom).then(response => {
         this.list = response.result
         this.listLoading = false
-        this.totalItem = response.result.totalElements
-        this.currentPage = response.result.pageable.offset / response.result.pageable.pageSize + 1
-        this.pageSize = response.result.pageable.pageSize
-      }).catch(() => {
+        // this.totalItem = response.result.totalElements
+        // this.currentPage = response.result.pageable.offset / response.result.pageable.pageSize + 1
+        // this.pageSize = response.result.pageable.pageSize
+      }).catch((e) => {
+        console.error(e)
         this.$message('无法完成获取列表数据请求')
         this.listLoading = false
       })
@@ -187,6 +176,24 @@ export default {
         }
       }).catch(() => {
         this.$message('无法完成镜像删除请求')
+        this.listLoading = false
+      })
+    },
+    // 发送批量删除请求
+    sendBatchDelRequest(fileNames) {
+      imageRequest.batchDel(fileNames).then(response => {
+        if (response.success) {
+          this.$message({
+            message: '镜像删除成功，' + response.msg,
+            type: 'success'
+          })
+          this.fetchData()
+        } else {
+          this.$message.error('镜像删除失败，' + response.msg)
+        }
+      }).catch((e) => {
+        console.error(e)
+        this.$message('无法完成当前请求。')
         this.listLoading = false
       })
     },
@@ -229,18 +236,27 @@ export default {
         this.$message.error('当前没有选中任何对象，无法进行删除。')
         return
       }
-      this.$confirm('此操作将永久删除选中主机, 是否继续?', '提示', {
+      this.$confirm('此操作将永久删除选中镜像, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'error'
       }).then(() => {
-        this.sendBatchDelRequest(this.getDelId(this.multipleSelection))
+        console.log('删除中')
+        this.sendBatchDelRequest(this.getNameList(this.multipleSelection))
       }).catch(() => {
         this.$message({
           type: 'info',
           message: '已取消删除'
         })
       })
+    },
+    getNameList(list) {
+      const nameList = []
+      for (let i = 0; i < list.length; i++) {
+        const obj = list[i]
+        nameList.push(obj.name)
+      }
+      return nameList
     },
     // 新增/编辑 确认按钮事件
     handleDialogSubmit() {

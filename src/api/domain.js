@@ -47,3 +47,10 @@ export function action(data) {
     data
   })
 }
+
+export function del(uuid, hostId) {
+  return request({
+    url: '/domain/' + uuid + '/host/' + hostId,
+    method: 'delete'
+  })
+}

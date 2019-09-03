@@ -15,7 +15,7 @@
             />
             <el-tree
               ref="tree"
-              node-key="node-key"
+              node-key="node_key"
               class="filter-tree"
               :load="loadNode"
               lazy
@@ -31,6 +31,7 @@
         <el-card v-if="Object.keys(domain).length !== 0" class="box-card instance-info">
           <div slot="header" class="clearfix">
             <span>{{ domain.name }}</span>
+            <el-button size="mini" type="danger" icon="el-icon-delete" circle="" @click="sendDelDomainRequest(domain.hostId, domain.uuid)" />
           </div>
           <div class="text item">
             <el-container>
@@ -194,8 +195,25 @@ export default {
         this.$message('无法完成当前请求')
       })
     },
+    async sendDelDomainRequest(hostId, uuid) {
+      await this.$store.dispatch('domain/sendDelDomain', { hostId: hostId, uuid: uuid }).then(() => {
+        this.$message({
+          message: '镜像删除成功',
+          type: 'success'
+        })
+        const node = this.$refs.tree.getNode(uuid)
+        console.log('node', node)
+        this.$refs.tree.remove(node)
+        this.domain = {}
+        this.hostId = 0
+        // this.fetchData()
+      }).catch((e) => {
+        console.error(e)
+        this.$message('无法完成当前请求')
+      })
+    },
     async sendGetDomainInfoRequest(hostId, uuid) {
-      console.log('sendGetDomainInfoRequest', hostId, uuid)
+      // console.log('sendGetDomainInfoRequest', hostId, uuid)
       await this.$store.dispatch('domain/getDomainInfo', { hostId: hostId, uuid: uuid }).then(() => {
         this.domain = this.getDomainByHostIdAndId(hostId, uuid)
         this.vncUrl += '&time=' + new Date().getTime()
@@ -254,7 +272,7 @@ export default {
     // 树 加载节点方法
     async loadNode(node, resolve) {
       if (node.level === 0) {
-        return resolve([{ label: '主机', nodeKey: 'root' }])
+        return resolve([{ label: '主机', node_key: 'root' }])
       }
       if (node.level === 1) {
         return resolve(this.formatHostListData(await this.sendGetHostRequest()))
@@ -272,7 +290,7 @@ export default {
         const host = list[i]
         const obj = {
           id: host.id,
-          nodeKey: 'host' + host.id + host.name,
+          node_key: 'host' + host.id,
           label: host.name,
           leaf: false
         }
@@ -290,7 +308,7 @@ export default {
         const instance = list[i]
         const obj = {
           id: instance.id,
-          nodeKey: 'domain' + instance.id + instance.name,
+          node_key: instance.uuid,
           label: instance.name,
           leaf: true,
           name: instance.name,
@@ -307,7 +325,7 @@ export default {
     formatInstanceData(instance, hostId) {
       return {
         id: instance.id,
-        nodeKey: 'domain' + instance.id + instance.name,
+        node_key: 'domain' + instance.id + instance.name,
         label: instance.name,
         leaf: true,
         name: instance.name,
